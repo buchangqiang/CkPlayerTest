@@ -1,0 +1,292 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+</head>
+<body>
+
+    <div id="aa"></div>
+    <input type="text" id="T_Src" /><input type="button" id="Btn_1" value="打开" />
+
+
+
+    <script src="ckplayer/ckplayer.js"></script>
+    <script src="jquery-1.8.2.js"></script>
+    <script type="text/javascript">
+        $(function () {
+
+
+            function test() {
+                alert('test...');
+            }
+
+
+            //"http://video.thepaper.cn/clt/video/0/12/888.mp4"
+            var src = 'http://movie.ks.js.cn/flv/other/1_0.flv';
+            $("#T_Src").val(src);
+            $("#Btn_1").click(function () {
+                //PlayVideo($("#T_Src").val());
+                //video = new $.Video($("#T_Src").val(), 'aa');
+                //video.Play();
+
+                var video = new Video(
+                    'aa',
+                    $("#T_Src").val(),
+                    {
+                        handlePause: function () {
+                            alert('stop...');
+                        },
+                        handleSeeking: function (t) {
+                            alert('拖到:' + t);
+                        }
+                    });
+                video.Play();
+            })
+        })
+    </script>
+
+
+
+    <script>
+        var handleTime;
+        var handlePause;
+        var handleSeeking;
+        function Video(id, src, handleOpts) {
+            this.Id = id;
+            this.Src = src;//handleOpts ? (handleOpts.handleTime ? handleTime.handleTime : null) : null;
+            handleTime = handleOpts ? (handleOpts.handleTime ? handleOpts.handleTime : null) : null;
+            handlePause = handleOpts ? (handleOpts.handlePause ? handleOpts.handlePause : null) : null;
+            handleSeeking = handleOpts ? (handleOpts.handleSeeking ? handleOpts.handleSeeking : null) : null;
+        };
+        Video.prototype.Play = function () {
+            var flashvars = {
+                f: this.Src,
+                c: 0,
+                p: 0,
+                loaded: 'loadedHandler'
+            };
+            var params = { bgcolor: '#FFF', allowFullScreen: true, allowScriptAccess: 'always', wmode: 'transparent' };
+            var video = ['http://movie.ks.js.cn/flv/other/1_0.mp4->video/mp4'];
+            CKobject.embed('/ckplayer/ckplayer.swf', this.Id, 'ckplayer_a1', '100%', '100%', false, flashvars, video, params);
+
+        };
+
+        function loadedHandler() {
+            if (CKobject.getObjectById('ckplayer_a1').getType()) {
+                addPlayListener();
+            }
+            else {
+                addPlayListener();
+            }
+        }
+
+        function addPlayListener() {//增加播放监听
+           if (CKobject.getObjectById('ckplayer_a1').getType()) {//说明使用html5播放器
+               CKobject.getObjectById('ckplayer_a1').addListener('play', playHandler);
+           }
+           else {
+               CKobject.getObjectById('ckplayer_a1').addListener('play', 'playHandler');
+           }
+       }
+
+       function removePlayListener() {//删除播放监听事件
+           if (CKobject.getObjectById('ckplayer_a1').getType()) {//说明使用html5播放器
+               CKobject.getObjectById('ckplayer_a1').removeListener('play', playHandler);
+           }
+           else {
+               CKobject.getObjectById('ckplayer_a1').removeListener('play', 'playHandler');
+           }
+       }
+
+       function addTimeListener() {//增加时间监听
+           if (CKobject.getObjectById('ckplayer_a1').getType()) {//说明使用html5播放器
+               CKobject.getObjectById('ckplayer_a1').addListener('time', timeHandler);
+           }
+           else {
+               CKobject.getObjectById('ckplayer_a1').addListener('time', 'timeHandler');
+           }
+       }
+
+       function playHandler() {
+           //alert('因为注册了监听播放，所以弹出此内容，删除监听将不再弹出');
+           removePlayListener();
+           CKobject.getObjectById('ckplayer_a1').videoSeek(getCookie("Time"));
+           addTimeListener();
+           //监听暂停
+           addPauseListener();
+           addFastNextListener();
+       }
+
+       function timeHandler(t) {
+           if (t > -1) {
+               SetCookie("Time", t);
+               if (typeof handleTime == 'function') {
+                   handleTime(t);
+               }
+           }
+       }
+
+
+       function addPauseListener() {//增加暂停监听
+           if (CKobject.getObjectById('ckplayer_a1').getType()) {//说明使用html5播放器
+               CKobject.getObjectById('ckplayer_a1').addListener('pause', pauseHandle);
+           }
+           else {
+               CKobject.getObjectById('ckplayer_a1').addListener('pause', 'pauseHandle');
+           }
+       }
+
+
+       function addFastNextListener() {//增加跳转时间监听（拖动时间）
+           if (CKobject.getObjectById('ckplayer_a1').getType()) {//说明使用html5播放器
+               CKobject.getObjectById('ckplayer_a1').addListener('seeking', fastNextHandle);
+           }
+           else {
+               CKobject.getObjectById('ckplayer_a1').addListener('seeking', 'fastNextHandle');
+           }
+       }
+
+        function fastNextHandle(num) {
+            if (typeof handleSeeking == "function") {
+                handleSeeking(num);
+            }
+       }
+       //监听暂停
+       function pauseHandle() {
+           if (typeof handlePause == "function") {
+               handlePause();
+           }
+       }
+
+
+       function SetCookie(name, value)//两个参数，一个是cookie的名子，一个是值
+       {
+           var Days = 30; //此 cookie 将被保存 30 天
+           var exp = new Date(); //new Date("December 31, 9998");
+           exp.setTime(exp.getTime() + Days * 24 * 60 * 60 * 1000);
+           document.cookie = name + "=" + escape(value) + ";expires=" + exp.toGMTString();
+       }
+       function getCookie(name)//取cookies函数
+       {
+           var arr = document.cookie.match(new RegExp("(^| )" + name + "=([^;]*)(;|$)"));
+           if (arr != null) return unescape(arr[2]); return null;
+       }
+    </script>
+
+    <!--<script>
+
+
+            (function ($) {
+                $.Video = function (src,spanid, options, handles) {
+                    var defaults = {
+                        f: src,
+                        c: 0,
+                        p: 0,
+                        loaded: 'loadedHandler'
+                    };
+
+                    var flashvars = defaults;
+
+                    //options有设置
+                    if (options != undefined && options != null) {
+                        $.extend(params, options);
+                    }
+
+                    method = {
+                        loadedHandler: function () {
+                            if (CKobject.getObjectById('ckplayer_a1').getType()) {
+                                addPlayListener();
+                            }
+                            else {
+                                addPlayListener();
+                            }
+                        },
+                        addPlayListener: function () {
+                            if (CKobject.getObjectById('ckplayer_a1').getType()) {//说明使用html5播放器
+                                CKobject.getObjectById('ckplayer_a1').addListener('play', playHandler);
+                            }
+                            else {
+                                CKobject.getObjectById('ckplayer_a1').addListener('play', 'playHandler');
+                            }
+                        },
+                        removePlayListener: function () {
+                            if (CKobject.getObjectById('ckplayer_a1').getType()) {//说明使用html5播放器
+                                CKobject.getObjectById('ckplayer_a1').removeListener('play', playHandler);
+                            }
+                            else {
+                                CKobject.getObjectById('ckplayer_a1').removeListener('play', 'playHandler');
+                            }
+                        },
+                        addTimeListener: function () {
+                            if (CKobject.getObjectById('ckplayer_a1').getType()) {//说明使用html5播放器
+                                CKobject.getObjectById('ckplayer_a1').addListener('time', timeHandler);
+                            }
+                            else {
+                                CKobject.getObjectById('ckplayer_a1').addListener('time', 'timeHandler');
+                            }
+                        },
+                        playHandler: function () {
+                            //alert('因为注册了监听播放，所以弹出此内容，删除监听将不再弹出');
+                            removePlayListener();
+                            CKobject.getObjectById('ckplayer_a1').videoSeek(getCookie("Time"));
+                            addTimeListener();
+                            //监听暂停
+                            addPauseListener();
+                            addFastNextListener();
+                        },
+                        timeHandler: function (t) {
+                            if (t > -1) {
+                                SetCookie("Time", t);
+                            }
+                        },
+                        addPauseListener: function () {
+                            if (CKobject.getObjectById('ckplayer_a1').getType()) {//说明使用html5播放器
+                                CKobject.getObjectById('ckplayer_a1').addListener('pause', pauseHandle);
+                            }
+                            else {
+                                CKobject.getObjectById('ckplayer_a1').addListener('pause', 'pauseHandle');
+                            }
+                        },
+                        addFastNextListener: function () {
+                            if (CKobject.getObjectById('ckplayer_a1').getType()) {//说明使用html5播放器
+                                CKobject.getObjectById('ckplayer_a1').addListener('seeking', fastNextHandle);
+                            }
+                            else {
+                                CKobject.getObjectById('ckplayer_a1').addListener('seeking', 'fastNextHandle');
+                            }
+                        },
+                        fastNextHandle: function (num) {
+                            alert('拖动到：' + num);
+                        },
+                        pauseHandle: function () {
+                            alert('暂停..');
+                        },
+                        SetCookie: function (name, value) {
+                            var Days = 30; //此 cookie 将被保存 30 天
+                            var exp = new Date(); //new Date("December 31, 9998");
+                            exp.setTime(exp.getTime() + Days * 24 * 60 * 60 * 1000);
+                            document.cookie = name + "=" + escape(value) + ";expires=" + exp.toGMTString();
+                        },
+                        getCookie: function (name) {
+                            var arr = document.cookie.match(new RegExp("(^| )" + name + "=([^;]*)(;|$)"));
+                            if (arr != null) return unescape(arr[2]); return null;
+                        }
+                    };
+
+                    this.Play = function () {
+                        var params = { bgcolor: '#FFF', allowFullScreen: true, allowScriptAccess: 'always', wmode: 'transparent' };
+                        var video = ['http://movie.ks.js.cn/flv/other/1_0.mp4->video/mp4'];
+                        CKobject.embed('/ckplayer/ckplayer.swf', spanid, 'ckplayer_a1', '100%', '100%', false, flashvars, video, params);
+
+                    }
+                }
+            })($);
+
+
+     
+
+       
+    </script>-->
+</body>
+</html>

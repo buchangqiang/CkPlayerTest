@@ -1,0 +1,25 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+</head>
+<body>
+    <div id="a1"></div>
+
+    <h1>播放器测试</h1>
+
+    <script src="http://test.erp.xiaohu.in/lib/ckplayer/ckplayer.js"></script>
+    <script type="text/javascript">
+        var flashvars = {
+            f: 'http://movie.ks.js.cn/flv/other/1_0.flv',
+            c: 0,
+            k: '10|20|30',
+            n: '哈哈哈|jjjjjjjj|开口扩大艰苦艰苦'
+        };
+        var params = { bgcolor: '#FFF', allowFullScreen: true, allowScriptAccess: 'always', wmode: 'transparent' };
+        var video = ['http://movie.ks.js.cn/flv/other/1_0.mp4->video/mp4'];
+        CKobject.embed('/ckplayer/ckplayer.swf', 'a1', 'ckplayer_a1', '100%', '100%', false, flashvars, video, params);
+    </script>
+</body >
+</html >
